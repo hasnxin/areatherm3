@@ -8,13 +8,14 @@
 </head>
 <body>
   <div class="app-shell">
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
       <div class="brand">
         <div class="brand-mark">AT</div>
         <div>
           <div class="brand-name" id="brandName">AreaTherm</div>
           <div class="brand-sub">Passive Shelter Design</div>
         </div>
+        <button id="sidebarClose" class="sidebar-close" aria-label="Close menu">✕</button>
       </div>
       <nav class="nav" id="mainNav">
         <a href="#/dashboard" data-route="dashboard">Dashboard</a>
@@ -38,11 +39,15 @@
         <div class="version-tag">thermal-engine v1.0.0</div>
       </div>
     </aside>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <main class="content">
       <header class="topbar">
-        <div class="topbar-project">
-          <span class="topbar-label">Project</span>
-          <span class="topbar-value" id="projectName">Untitled Project</span>
+        <div class="topbar-left">
+          <button id="menuToggle" class="menu-toggle" aria-label="Open menu">☰</button>
+          <div class="topbar-project">
+            <span class="topbar-label">Project</span>
+            <span class="topbar-value" id="projectName">Untitled Project</span>
+          </div>
         </div>
         <div class="topbar-actions">
           <button id="runLiveDemoBtn" class="btn btn-accent">▶ Run Live Demo</button>

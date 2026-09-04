@@ -84,6 +84,17 @@ window.APP = (function () {
 
     window.addEventListener("hashchange", render);
     document.getElementById("runLiveDemoBtn").addEventListener("click", runLiveDemo);
+
+    // Mobile off-canvas sidebar (hamburger in the topbar, only visible <=860px).
+    const sidebarEl = document.getElementById("sidebar");
+    const backdropEl = document.getElementById("sidebarBackdrop");
+    const closeSidebar = () => { sidebarEl.classList.remove("open"); backdropEl.classList.remove("open"); };
+    document.getElementById("menuToggle").addEventListener("click", () => {
+      sidebarEl.classList.toggle("open"); backdropEl.classList.toggle("open");
+    });
+    document.getElementById("sidebarClose").addEventListener("click", closeSidebar);
+    backdropEl.addEventListener("click", closeSidebar);
+    document.getElementById("mainNav").addEventListener("click", (e) => { if (e.target.tagName === "A") closeSidebar(); });
     document.getElementById("explainClose").addEventListener("click", () => document.getElementById("explainModal").classList.add("hidden"));
     document.getElementById("explainModal").addEventListener("click", (e) => { if (e.target.id === "explainModal") e.currentTarget.classList.add("hidden"); });
 
