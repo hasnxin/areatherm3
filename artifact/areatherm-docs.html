@@ -163,7 +163,7 @@ pre{background:var(--code-bg); color:var(--code-text); padding:16px 18px; margin
       <a href="#roadmap">Roadmap</a>
       <a href="#repo-structure">Repository Layout</a>
     </nav>
-    <div class="meta">v1.1.0<br/>Updated 2026-09-04</div>
+    <div class="meta">v1.2.0<br/>Updated 2026-09-04</div>
   </aside>
 
   <main>
@@ -177,12 +177,12 @@ pre{background:var(--code-bg); color:var(--code-text); padding:16px 18px; margin
       Maintenance,"</em> initial focus: Ladakh, extensible to any climate.</p>
       <div class="facts">
         <span><b>Prototype:</b> HTML/CSS/vanilla JS, zero dependencies</span>
-        <span><b>Live weather:</b> Open-Meteo (10 locations)</span>
+        <span><b>Live weather:</b> Open-Meteo + NASA POWER (10 locations)</span>
         <span><b>Target stack:</b> Angular 18 + Spring Boot 3 + MySQL 8</span>
       </div>
       <div class="link-row">
-        <a class="link-btn primary" href="https://hasnxin.github.io/areatherm2/" target="_blank" rel="noopener">▶ Open Live App</a>
-        <a class="link-btn" href="https://github.com/hasnxin/areatherm2" target="_blank" rel="noopener">Source on GitHub</a>
+        <a class="link-btn primary" href="https://hasnxin.github.io/areatherm3/" target="_blank" rel="noopener">▶ Open Live App</a>
+        <a class="link-btn" href="https://github.com/hasnxin/areatherm3" target="_blank" rel="noopener">Source on GitHub</a>
       </div>
     </header>
 
@@ -282,7 +282,8 @@ flowchart TD
       <p>A static HTML/CSS/vanilla-JS single-page app (no build step, no framework, no backend).
       State persists to the browser's <code>localStorage</code>, field-compatible with the schema
       in §7 so a future API swap is a data-layer change, not a redesign. Deployed as a static site
-      via GitHub Pages (§8).</p>
+      via GitHub Pages (§8). The sidebar becomes an off-canvas drawer (hamburger toggle) below
+      860px width, so the same deploy works on a phone without a separate mobile build.</p>
 
       <h3>Target production architecture</h3>
       <div class="diagram">
@@ -334,7 +335,7 @@ flowchart TB
       <div class="mod-grid">
         <div class="mod"><div class="t">Dashboard</div><div class="s">4 primary metrics (comfort score, solar gain, heat loss, avg. indoor temp) with a collapsible "Detailed Analytics" section — simulation history, best design, breakdown.</div></div>
         <div class="mod"><div class="t">Guided Setup <span class="pill real">non-engineer</span></div><div class="s">5-step wizard: Location → Shelter → Materials → Comfort → Run. Sane presets throughout; shares state with the advanced screens.</div></div>
-        <div class="mod"><div class="t">Location &amp; Climate</div><div class="s">10 reference locations, each loadable as live Open-Meteo weather or (Leh/Kargil/Drass only) an illustrative demo profile. See §5.</div></div>
+        <div class="mod"><div class="t">Location &amp; Climate</div><div class="s">10 reference locations, each loading live Open-Meteo weather + NASA POWER solar/temperature climatology — no hand-authored data anywhere. See §5.</div></div>
         <div class="mod"><div class="t">Shelter Designer</div><div class="s">Geometry (rectangular/square/circular/dome/semi-circular), orientation/azimuth, openings, occupancy — with a live 2D top-down preview.</div></div>
         <div class="mod"><div class="t">Materials</div><div class="s">Editable library across wall/roof/insulation/thermal-mass/window categories; add custom materials, all labelled "engineering database — verify for construction."</div></div>
         <div class="mod"><div class="t">Thermal Simulation</div><div class="s">Runs the hourly RC model (§6), indoor-vs-ambient-vs-comfort chart, heat-flow breakdown, and per-term "Explain Calculation" panels.</div></div>
@@ -350,40 +351,40 @@ flowchart TB
     <section id="data-integration">
       <h2><span class="num">§5</span> Live Weather &amp; Reference Locations</h2>
       <p class="lede">How real data gets into the model, and how it's kept honest.</p>
-      <p>Climate input comes from one of two sources, and the app never blurs which one is active:</p>
+      <p>Every one of the 10 reference locations gets its climate from two live sources working
+      together — no hand-authored or illustrative climate dataset ships with the app at all:</p>
       <div class="callout real">
-        <p><strong>✓ Real — Open-Meteo (live).</strong> Any of the 10 reference locations can fetch
-        a live 7-day forecast directly from the browser (Open-Meteo is CORS-enabled, no API key,
-        no backend needed). The hourly series across those 7 days is bucketed by hour-of-day and
-        averaged into a "typical day" curve, which the thermal model consumes directly — smoothing
-        out any single unusually cloudy or windy day. Results are cached in <code>localStorage</code>
-        for 7 days. Source: <code>app/js/weather-api.js</code>.</p>
+        <p><strong>✓ Open-Meteo — drives the simulation.</strong> A live 7-day forecast fetched
+        directly from the browser (CORS-enabled, no API key, no backend needed). The hourly series
+        across those 7 days is bucketed by hour-of-day and averaged into a "typical day" curve,
+        which the thermal model consumes directly — smoothing out any single unusually cloudy or
+        windy day. Cached in <code>localStorage</code> for 7 days. Source: <code>app/js/weather-api.js</code>.</p>
       </div>
-      <div class="callout illustrative">
-        <p><strong>⚠ Illustrative — demo dataset.</strong> Leh, Kargil, and Drass additionally carry
-        a hand-built seasonal reference profile (Winter/Spring/Summer/Autumn) for offline demos, or
-        as a fallback if the live fetch fails. It is a representative reference, not a measurement —
-        labelled as such everywhere it appears.</p>
+      <div class="callout real">
+        <p><strong>✓ NASA POWER — real annual solar/temperature climatology.</strong> A 20-year
+        (2001–2020) climate normal for solar irradiance (GHI, DNI) and 2 m air temperature, fetched
+        separately from Open-Meteo. This is what backs the "annual solar potential" figure — a real
+        long-term average, not an extrapolation from the 7-day forecast. If this fetch fails, the
+        app falls back to a forecast-based extrapolation and labels it as such rather than silently
+        showing a number that looks more authoritative than it is. Source: <code>app/js/nasa-power.js</code>.</p>
       </div>
-      <p>Every screen showing climate-derived numbers displays a data-source badge reflecting
-      exactly this distinction, and "annual" solar/sunshine figures are only shown as such for
-      illustrative locations — for live locations, the same figures are explicitly labelled as
-      "extrapolated from the current 7-day forecast, not annual climatology."</p>
+      <p>Every screen showing climate-derived numbers displays a data-source badge naming exactly
+      which of these produced it, down to the specific fallback case above.</p>
 
       <h4>The 10 reference locations</h4>
       <div class="table-wrap"><table>
-        <thead><tr><th>Location</th><th>Region</th><th>Elevation</th><th>Category</th><th>Illustrative profile</th></tr></thead>
+        <thead><tr><th>Location</th><th>Region</th><th>Elevation</th><th>Category</th></tr></thead>
         <tbody>
-          <tr><td>Leh</td><td>Ladakh (UT)</td><td class="num">3,500 m</td><td>Cold desert</td><td>✓</td></tr>
-          <tr><td>Kargil</td><td>Ladakh (UT)</td><td class="num">2,676 m</td><td>Cold desert</td><td>✓</td></tr>
-          <tr><td>Drass</td><td>Ladakh (UT)</td><td class="num">3,280 m</td><td>Cold desert</td><td>✓</td></tr>
-          <tr><td>Keylong</td><td>Himachal Pradesh</td><td class="num">3,170 m</td><td>High Himalaya</td><td>—</td></tr>
-          <tr><td>Munsiyari</td><td>Uttarakhand</td><td class="num">2,298 m</td><td>High Himalaya</td><td>—</td></tr>
-          <tr><td>Shimla</td><td>Himachal Pradesh</td><td class="num">2,159 m</td><td>Mid Himalaya</td><td>—</td></tr>
-          <tr><td>Srinagar</td><td>Jammu &amp; Kashmir (UT)</td><td class="num">1,730 m</td><td>Temperate valley</td><td>—</td></tr>
-          <tr><td>Pune</td><td>Maharashtra</td><td class="num">625 m</td><td>Tropical plateau</td><td>—</td></tr>
-          <tr><td>Nagpur</td><td>Maharashtra</td><td class="num">310 m</td><td>Tropical plain</td><td>—</td></tr>
-          <tr><td>Bareilly</td><td>Uttar Pradesh</td><td class="num">168 m</td><td>Gangetic plain</td><td>—</td></tr>
+          <tr><td>Leh</td><td>Ladakh (UT)</td><td class="num">3,500 m</td><td>Cold desert</td></tr>
+          <tr><td>Kargil</td><td>Ladakh (UT)</td><td class="num">2,676 m</td><td>Cold desert</td></tr>
+          <tr><td>Drass</td><td>Ladakh (UT)</td><td class="num">3,280 m</td><td>Cold desert</td></tr>
+          <tr><td>Keylong</td><td>Himachal Pradesh</td><td class="num">3,170 m</td><td>High Himalaya</td></tr>
+          <tr><td>Munsiyari</td><td>Uttarakhand</td><td class="num">2,298 m</td><td>High Himalaya</td></tr>
+          <tr><td>Shimla</td><td>Himachal Pradesh</td><td class="num">2,159 m</td><td>Mid Himalaya</td></tr>
+          <tr><td>Srinagar</td><td>Jammu &amp; Kashmir (UT)</td><td class="num">1,730 m</td><td>Temperate valley</td></tr>
+          <tr><td>Pune</td><td>Maharashtra</td><td class="num">625 m</td><td>Tropical plateau</td></tr>
+          <tr><td>Nagpur</td><td>Maharashtra</td><td class="num">310 m</td><td>Tropical plain</td></tr>
+          <tr><td>Bareilly</td><td>Uttar Pradesh</td><td class="num">168 m</td><td>Gangetic plain</td></tr>
         </tbody>
       </table></div>
       <p class="lede" style="margin-top:14px;">Adding an 11th location is a one-line addition to
@@ -522,12 +523,12 @@ flowchart TD
       <p class="lede">The contract a Spring Boot backend should expose — the prototype calls the equivalent logic as JS functions today.</p>
       <p>Base path <code>/api/v1</code>, JWT bearer auth, JSON bodies. Every response distinguishes
       <code>source</code>: <code>USER_INPUT</code> | <code>MODEL_ASSUMPTION</code> |
-      <code>CALCULATED_RESULT</code> | <code>FIELD_MEASUREMENT</code> | <code>DEMO_ILLUSTRATIVE</code>.</p>
+      <code>CALCULATED_RESULT</code> | <code>FIELD_MEASUREMENT</code> | <code>REAL_LIVE_FETCH</code>.</p>
       <div class="table-wrap"><table>
         <thead><tr><th>Method &amp; path</th><th>Purpose</th></tr></thead>
         <tbody>
           <tr><td><code>GET /locations</code></td><td>List saved locations for the current project</td></tr>
-          <tr><td><code>GET /climate-profiles/demo/ladakh</code></td><td>The illustrative demo datasets, flagged <code>isIllustrative: true</code></td></tr>
+          <tr><td><code>GET /climate-profiles/live?locationId=</code></td><td>Fetch/refresh a location's live Open-Meteo weather + NASA POWER climatology, server-side cached (5–7 day TTL)</td></tr>
           <tr><td><code>POST /climate-profiles</code></td><td>Create a user-provided or live-fetched climate profile (+ hourly series)</td></tr>
           <tr><td><code>GET/POST /projects/{id}/shelter-designs</code></td><td>List / create shelter designs</td></tr>
           <tr><td><code>GET /materials?category=WALL|ROOF|...</code></td><td>Material library, filterable by category</td></tr>
@@ -550,8 +551,8 @@ flowchart TD
       <strong>GitHub Pages</strong> via a GitHub Actions workflow (<code>.github/workflows/pages.yml</code>)
       that publishes the <code>app/</code> folder on every push to <code>main</code>.</p>
       <div class="link-row">
-        <a class="link-btn primary" href="https://hasnxin.github.io/areatherm2/" target="_blank" rel="noopener">Live site ↗</a>
-        <a class="link-btn" href="https://github.com/hasnxin/areatherm2" target="_blank" rel="noopener">GitHub repo ↗</a>
+        <a class="link-btn primary" href="https://hasnxin.github.io/areatherm3/" target="_blank" rel="noopener">Live site ↗</a>
+        <a class="link-btn" href="https://github.com/hasnxin/areatherm3" target="_blank" rel="noopener">GitHub repo ↗</a>
       </div>
       <h4>Run it locally</h4>
       <div class="code-wrap"><pre>python -m http.server 8743 --directory app
@@ -573,7 +574,7 @@ flowchart TD
       <h4>Not yet implemented</h4>
       <ul>
         <li>Authentication / RBAC persistence, multi-user shared database (state is per-browser <code>localStorage</code> today)</li>
-        <li>Historical/multi-year climatology — Open-Meteo's forecast endpoint only, no NASA POWER/ERA5/IMD archive integration</li>
+        <li>ERA5/IMD archive integration — NASA POWER covers solar/temperature climatology; other historical variables (precipitation, detailed wind climatology) would need these</li>
         <li>3D shelter preview (2D top-down schematic only)</li>
         <li>Server-side PDF rendering (browser print-to-PDF instead)</li>
         <li>ML surrogate model (architected in the source ARCHITECTURE.md, not trained — no labelled field data exists)</li>
@@ -597,8 +598,8 @@ flowchart TD
         <li>Wire an Angular frontend to that API in place of <code>store.js</code>.</li>
         <li>Instrument a pilot shelter in Leh or Kargil and feed real readings into the Validation
         module to get an actual MAE/RMSE against the model.</li>
-        <li>Add NASA POWER / ERA5 / IMD archive adapters behind the existing
-        <code>ClimateProfile</code> abstraction, for historical climatology beyond a 7-day forecast.</li>
+        <li>Add ERA5 / IMD archive adapters behind the existing <code>ClimateProfile</code>
+        abstraction, for historical variables beyond what NASA POWER's climatology already covers.</li>
         <li>Train an ML surrogate once enough simulation + field-validation data exists, kept
         clearly labelled "ML-based estimation" and never merged with physics-model results.</li>
       </ol>
@@ -616,8 +617,9 @@ flowchart TD
 &nbsp;&nbsp;&nbsp;&nbsp;index.html<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;css/styles.css<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;js/config.js <span class="c">— branding, units, default weights</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;js/data.js <span class="c">— locations, materials, comfort profiles</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;js/data.js <span class="c">— locations, materials, comfort profiles (no climate data)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;js/weather-api.js <span class="c">— Open-Meteo client (§5)</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;js/nasa-power.js <span class="c">— NASA POWER climatology client (§5)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;js/engine.js <span class="c">— thermal model + optimizer (§6, §7)</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;js/charts.js <span class="c">— inline-SVG chart renderer</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;js/store.js <span class="c">— app state, schema-compatible</span><br/>
